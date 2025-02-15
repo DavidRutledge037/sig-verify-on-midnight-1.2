@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Midnight Wallet Integration</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Midnight Wallet Integration</h1>
+        <div id="status">Initializing wallet...</div>
+        <div id="debug"></div>
+    </div>
+    <script>
+        async function initWallet() {
+            const statusDiv = document.getElementById('status');
+            const debugDiv = document.getElementById('debug');
+            
+            try {
+                if (!window.midnight?.mnLace) {
+                    throw new Error('Midnight Lace wallet not found');
+                }
+
+                const wallet = window.midnight.mnLace;
+                
+                debugDiv.innerHTML = `
+                    <p class="info">Wallet interface detected</p>
+                    <p class="info">Available methods: ${Object.keys(wallet).join(', ')}</p>
+                `;
+
+                await wallet.enable();
+                const isEnabled = await wallet.isEnabled();
+                
+                statusDiv.innerHTML = `
+                    <p class="success">✅ Wallet Connected</p>
+                    <p>Status: ${isEnabled ? 'Enabled' : 'Disabled'}</p>
+                `;
+                
+                debugDiv.innerHTML += `<p class="success">Wallet successfully enabled</p>`;
+            } catch (error) {
+                statusDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                debugDiv.innerHTML += `<p class="error">Error details: ${error.message}</p>`;
+            }
+        }
+
+        window.addEventListener('load', initWallet);
+    </script>
+</body>
+</html> 
