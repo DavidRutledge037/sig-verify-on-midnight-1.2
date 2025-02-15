@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "types": ["mocha", "chai", "node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.test.ts"],
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true
+  }
+} 

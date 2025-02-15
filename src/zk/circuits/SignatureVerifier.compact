@@ -1,0 +1,48 @@
+// SignatureVerifier.compact
+// A ZK circuit for verifying document signatures on Midnight
+
+contract SignatureVerifier {
+    // State variables
+    opaque DocumentHash: Field;
+    opaque SignerDID: Field;
+    opaque Signature: [Field; 2]; // r, s components of ECDSA
+
+    // Public inputs
+    public struct VerificationInput {
+        documentHash: DocumentHash,
+        signerDID: SignerDID
+    }
+
+    // Private inputs
+    private struct SignatureInput {
+        signature: Signature,
+        privateKey: Field
+    }
+
+    // Main verification function
+    fn verify(public: VerificationInput, private: SignatureInput) -> bool {
+        // Verify ECDSA signature
+        let pubKey = ec_mul_base(private.privateKey);
+        let msg_hash = hash_to_field(public.documentHash);
+        
+        assert(verify_ecdsa(
+            msg_hash,
+            private.signature,
+            pubKey
+        ));
+
+        // Verify DID ownership
+        let did_commitment = compute_did_commitment(pubKey);
+        assert(did_commitment == public.signerDID);
+
+        true
+    }
+
+    // Helper function for DID commitment
+    fn compute_did_commitment(pubKey: Point) -> Field {
+        poseidon_hash([
+            pubKey.x,
+            pubKey.y
+        ])
+    }
+} 

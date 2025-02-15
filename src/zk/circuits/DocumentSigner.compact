@@ -1,0 +1,45 @@
+contract DocumentSigner {
+    // State for document signing
+    opaque Document: Field;
+    opaque Signature: [Field; 2];
+    opaque DID: Field;
+
+    // Public inputs for verification
+    public struct SignatureVerification {
+        document_hash: Document,
+        signer_did: DID,
+        timestamp: Field
+    }
+
+    // Private inputs (witness)
+    private struct SignerWitness {
+        private_key: Field,
+        signature: Signature
+    }
+
+    // Main verification function
+    fn verify_signature(
+        public: SignatureVerification, 
+        private: SignerWitness
+    ) -> bool {
+        // 1. Verify the signature matches the document
+        let pubkey = ec_mul_base(private.private_key);
+        let msg = hash_to_field(public.document_hash);
+        
+        assert(verify_ecdsa(msg, private.signature, pubkey));
+
+        // 2. Verify DID ownership
+        let did_commitment = poseidon_hash([pubkey.x, pubkey.y]);
+        assert(did_commitment == public.signer_did);
+
+        // 3. Verify timestamp is current
+        assert(public.timestamp <= current_time());
+
+        true
+    }
+
+    // Helper for document hashing
+    fn hash_document(content: Field) -> Document {
+        poseidon_hash([content])
+    }
+} 
